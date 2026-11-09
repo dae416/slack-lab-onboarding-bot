@@ -1,0 +1,52 @@
+{
+  "display_information": {
+    "name": "Lab Onboarding Bot",
+    "description": "Answers lab onboarding questions from the lab handbook and reference notes.",
+    "background_color": "#3d6e8f"
+  },
+  "features": {
+    "app_home": {
+      "home_tab_enabled": false,
+      "messages_tab_enabled": true,
+      "messages_tab_read_only_enabled": false
+    },
+    "bot_user": {
+      "display_name": "Lab Onboarding Bot",
+      "always_online": true
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "app_mentions:read",
+        "chat:write",
+        "im:history",
+        "im:read",
+        "channels:history",
+        "groups:history",
+        "mpim:history",
+        "channels:read",
+        "groups:read",
+        "mpim:read",
+        "files:read",
+        "pins:read",
+        "pins:write"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "bot_events": [
+        "app_mention",
+        "message.im",
+        "message.channels"
+      ]
+    },
+    "interactivity": {
+      "is_enabled": false
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": true,
+    "token_rotation_enabled": false
+  }
+}

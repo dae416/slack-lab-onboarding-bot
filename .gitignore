@@ -1,0 +1,32 @@
+# secrets: keep the real env file outside the repository (~/.onboarding_bot.env); never commit one here
+.env
+*.env
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# what the running bot writes next to itself
+bot.log
+*.log
+onboarding_cache.txt
+onboarding.docx
+*.tmp
+
+# your lab's own notes and handbook (keep them in a private folder or a private drive, not in this repository)
+/notes/
+/handbook/
+/private/
+tools/raw/
+tools/kb/
+tools/slack_sync_log.md
+
+# editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.omc/

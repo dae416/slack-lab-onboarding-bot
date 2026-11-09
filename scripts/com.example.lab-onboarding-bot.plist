@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  macOS launchd user agent for the onboarding bot: starts at login, restarts on a crash.
+  1. Replace /PATH/TO/lab-onboarding-bot (4 places) with the absolute path of your clone (no ~).
+  2. cp scripts/com.example.lab-onboarding-bot.plist ~/Library/LaunchAgents/
+  3. launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.example.lab-onboarding-bot.plist   # start now + at login
+     tail -f /PATH/TO/lab-onboarding-bot/bot.log                                                   # watch the log
+     launchctl kickstart -k gui/$(id -u)/com.example.lab-onboarding-bot                            # restart
+     launchctl bootout gui/$(id -u)/com.example.lab-onboarding-bot                                 # stop + unregister
+  Also prevent the Mac from sleeping (System Settings > Energy) and turn on automatic login if it must survive reboots.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.example.lab-onboarding-bot</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/PATH/TO/lab-onboarding-bot/.venv/bin/python</string>
+    <string>-u</string>
+    <string>onboarding_bot.py</string>
+  </array>
+  <key>WorkingDirectory</key><string>/PATH/TO/lab-onboarding-bot</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>30</integer>
+  <key>StandardOutPath</key><string>/PATH/TO/lab-onboarding-bot/bot.log</string>
+  <key>StandardErrorPath</key><string>/PATH/TO/lab-onboarding-bot/bot.log</string>
+</dict>
+</plist>

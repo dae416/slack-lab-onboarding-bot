@@ -1,0 +1,18 @@
+# Linux systemd user service for the onboarding bot. Replace /PATH/TO/lab-onboarding-bot (3 places), then:
+#   mkdir -p ~/.config/systemd/user && cp scripts/lab-onboarding-bot.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now lab-onboarding-bot
+#   loginctl enable-linger $USER                    # keep it running without an active login session
+#   journalctl --user -u lab-onboarding-bot -f      # log
+[Unit]
+Description=Lab onboarding Slack bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/PATH/TO/lab-onboarding-bot
+ExecStart=/PATH/TO/lab-onboarding-bot/.venv/bin/python -u /PATH/TO/lab-onboarding-bot/onboarding_bot.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

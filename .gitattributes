@@ -1,0 +1,3 @@
+# identical bytes on every platform (the tests and the equivalence of prompts depend on exact text)
+* text=auto eol=lf
+*.png binary
