@@ -1,4 +1,4 @@
-# How to build your lab's onboarding bot
+# Lab Onboarding Bot for Slack
 
 A Slack bot that answers new lab members' questions ("How do I order something?", "Where do I send my receipt?",
 "How much vacation do I get?") from your **lab handbook** and a folder of **reference notes**, using Claude. It
@@ -17,19 +17,69 @@ your own handbook and notes, set a few variables, and it is your lab's bot.
 
 ## What it looks like
 
-Mockups of a Slack DM with the bot. The Slack window, the person asking (Alex) and the times are made up; the answer
-text is real, unedited output of `onboarding_bot.py` answering from the fictional handbook and notes in `examples/`.
+Mockups of a Slack DM with the bot, in four languages. The Slack window, the person asking (Alex) and the times are
+made up; the answer text is real, unedited output of `onboarding_bot.py` answering from the fictional handbook and
+notes in `examples/`.
 
-![A Slack DM: "How do I buy lab supplies under $300?" and the bot's answer from the example purchasing note](docs/images/dm-purchasing.png)
+<details open>
+<summary><b>한국어</b></summary>
+
+봇은 질문한 언어로 답합니다.
+
+실험 소모품 구매 방법을 물으면 예시 구매 노트대로 답합니다:
+
+![A Slack DM: a question in Korean about buying lab supplies under $300 and the bot's answer in Korean from the example purchasing note](docs/images/dm-ko-purchasing.png)
+
+복사해서 보낼 초안(여기서는 영수증 메일)은 코드 블록에 담아 줍니다:
+
+![A Slack DM: a request in Korean for the receipt email of a $45 order of pipette tips and the bot's draft in a code block](docs/images/dm-ko-receipt-email.png)
+
+학회 출장은 무엇부터 해야 하는지 순서대로 안내합니다:
+
+![A Slack DM: a question in Korean about conference travel and the bot's answer in Korean](docs/images/dm-ko-travel.png)
+
+</details>
+
+<details>
+<summary><b>中文</b></summary>
+
+用什么语言提问，机器人就用什么语言回答。
+
+问去开学术会议第一步做什么，机器人按示例出差规定说明步骤：
+
+![A Slack DM: a question in Chinese about the first step for a conference trip and the bot's answer in Chinese](docs/images/dm-zh-travel.png)
+
+</details>
+
+<details>
+<summary><b>Español</b></summary>
+
+El bot responde en el idioma en que se le pregunta.
+
+Para comprar material de laboratorio, responde con las reglas de la nota de compras de ejemplo:
+
+![A Slack DM: a question in Spanish about buying lab supplies under $300 and the bot's answer in Spanish](docs/images/dm-es-purchasing.png)
+
+Los borradores para copiar y enviar (aquí, el correo del recibo) van en un bloque de código:
+
+![A Slack DM: a request in Spanish for the receipt email of a $45 order of pipette tips and the bot's draft in a code block](docs/images/dm-es-receipt-email.png)
+
+</details>
+
+<details>
+<summary><b>English</b></summary>
+
+The bot answers in the language it is asked in.
+
+A purchasing question, answered from the example purchasing note:
+
+![A Slack DM: "How do I buy lab supplies under $300?" and the bot's answer from the example purchasing note](docs/images/dm-en-purchasing.png)
 
 Drafts to copy and send (here a receipt email) come in a plain code block:
 
-![A Slack DM: "Draft my receipt email for a $45 order of pipette tips" and the bot's draft in a code block](docs/images/dm-receipt-email.png)
+![A Slack DM: "Draft my receipt email for a $45 order of pipette tips" and the bot's draft in a code block](docs/images/dm-en-receipt-email.png)
 
-A question in another language is answered in that language (here Korean: "What do I need to do first for a
-conference trip?"):
-
-![A Slack DM: a question in Korean about conference travel and the bot's answer in Korean](docs/images/dm-korean-travel.png)
+</details>
 
 With the example settings, `tools/test_live.py` asks questions like these from the terminal (no Slack needed); live
 answers vary a little from run to run.
