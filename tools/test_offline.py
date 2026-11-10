@@ -483,6 +483,52 @@ slack, say = FakeSlack(), FakeSay()
 run(bot.reply, slack, say, {"channel": "D1", "ts": t(20), "user": ME}, ctx, "q", None, True)
 check("reply: channel-wide and group pings in an answer are defused", slack.updates[-1][2] == "hi @channel and @subteam @group",
       slack.updates)
+# Slack bolds *x* only with the start or end, a space or ASCII punctuation around the asterisks: anything else shows them
+unbold = bot.unbold_unrenderable
+UNBOLD = {  # the bot's real answers whose asterisks Slack showed, and a full-width bracket
+    "第一步：*先私信（DM）PI*，说明你想参加哪个会议、哪几天，*等 PI 同意后再预订任何东西*。":
+        "第一步：先私信（DM）PI，说明你想参加哪个会议、哪几天，等 PI 同意后再预订任何东西。",
+    "出发前*至少 3 周*在大学差旅系统…": "出发前至少 3 周在大学差旅系统…",
+    "回来后 *30 天内*提交报销单": "回来后 30 天内提交报销单",
+    "구매일로부터 *5 영업일 이내*에 랩 매니저에게…": "구매일로부터 5 영업일 이내에 랩 매니저에게…",
+    "「*注意*」": "「注意」",
+}
+got = {text: unbold(text) for text in UNBOLD}
+check("unbold: bold with Han, Hangul or a full-width mark next to its asterisks becomes plain text", got == UNBOLD, got)
+KEPT = ("*bold* text", "(*bold*)", "*bold*.", "line one\n*bold* at a line start", "*굵게* 한국어 *bold*",
+        "中文 *粗体* 和 (*粗体*)。")
+check("unbold: bold that Slack renders keeps its asterisks", [unbold(text) for text in KEPT] == list(KEPT),
+      [unbold(text) for text in KEPT])
+ASCII = ("2*3*4", "a*b*c", "x *y*z", "长*宽*2")
+check("unbold: an ASCII letter or digit next to an asterisk leaves the span as it is, also with Han on the other side",
+      [unbold(text) for text in ASCII] == list(ASCII), [unbold(text) for text in ASCII])
+check("unbold: list bullets and lone asterisks stay; a span on a bullet line still loses its asterisks",
+      [unbold(text) for text in ("* item", "* 항목\n* 项目", "注意 * 号", "注意*", "*", "a * b", "* 항목*이*다")]
+      == ["* item", "* 항목\n* 项目", "注意 * 号", "注意*", "*", "a * b", "* 항목이다"])
+check("unbold: ``` code blocks and `inline code` are never changed, the text around them is",
+      unbold("```\n中*文*中\n2*3*4\n```\n见`中*文*中`和*这里*。") == "```\n中*文*中\n2*3*4\n```\n见`中*文*中`和这里。")
+check("unbold: idempotent, also when dropping one pair leaves the next pair next to Han",
+      unbold("中*文**b* ") == "中文b " and all(unbold(unbold(text)) == unbold(text)
+                                             for text in [*UNBOLD, *KEPT, *ASCII, "中*文**b* ", "中*a* *b*中"]))
+MIXED = ("영수증 메일 초안이에요. *Receipt* 메일은 아래 형식으로 쓰세요:\n\n"
+         "```text\nSubject: Receipt - <vendor> - <date>\nTotal: 2*3*4 = *24*원\n```\n\n"
+         "- 영수증은 구매일로부터 *5 영업일 이내*에 *lab manager*에게 보내세요.\n"
+         "- `*.pdf*파일`로 첨부하고, *PI 승인*이 필요하면 *먼저* 물어보세요.\n"
+         "* 출처: 구매 규정 (*2026-02-03* 업데이트)")
+POSTED = ("영수증 메일 초안이에요. *Receipt* 메일은 아래 형식으로 쓰세요:\n\n"
+          "```\nSubject: Receipt - <vendor> - <date>\nTotal: 2*3*4 = *24*원\n```\n\n"
+          "- 영수증은 구매일로부터 5 영업일 이내에 lab manager에게 보내세요.\n"
+          "- `*.pdf*파일`로 첨부하고, PI 승인이 필요하면 *먼저* 물어보세요.\n"
+          "* 출처: 구매 규정 (*2026-02-03* 업데이트)")
+reply["r"] = fake_response("end_turn", text=MIXED)
+posted = []
+for event, thread_ts, in_dm in (({"channel": "D1", "ts": t(20), "user": "UMIX"}, None, True),  # a DM
+                                ({"channel": "C1", "ts": "40.0", "user": "UMIX"}, "40.0", False)):  # a mention
+    slack = FakeSlack()
+    run(bot.reply, slack, FakeSay(), event, ctx, "q", thread_ts, in_dm)
+    posted.append(slack.updates[-1][2])
+check("reply: a full answer in Korean and English is posted without the asterisks Slack would show (DM and mention); "
+      "rendered bold, the bullet and code keep theirs", posted == [POSTED, POSTED], posted)
 reply["r"] = fake_response("end_turn", text="ANSWER-TEXT")
 seen.clear()
 slack, say, asked = FakeSlack(top, threads), FakeSay(), len(bot._asked[ME])

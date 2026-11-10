@@ -845,6 +845,27 @@ def defuse(text: str) -> str:
     return re.sub(r"<!(here|channel|everyone|group|subteam)[^>]*>", r"@\1", text)
 
 
+def unbold_unrenderable(text: str) -> str:
+    """*Bold* that Slack shows with its asterisks (Han, Hangul or a full-width mark next to it) as plain text."""
+    def side(c: str) -> int:  # 0: boundary (start, end, space, ASCII punctuation); 1: non-ASCII; 2: other ASCII
+        return 0 if not c or c.isspace() or c.isascii() and not c.isalnum() else 2 if c.isascii() else 1
+
+    def unbold(m: re.Match) -> str:  # Slack does not render it, and only non-ASCII stops it (2*3*4 and a*b*c stay)
+        sides = side(m.string[m.start() - 1:m.start()]), side(m.string[m.end():m.end() + 1])
+        return m.group(1) if 1 in sides and 2 not in sides else m.group(0)
+
+    def plain(part: str) -> str:  # again until nothing changes: a second call changes nothing
+        while (new := re.sub(r"\*([^*`\s](?:[^*`\n]*[^*`\s])?)\*", unbold, part)) != part:
+            part = new
+        return part
+
+    blocks = re.split(r"(```.*?```)", text, flags=re.S)  # odd items: ``` code blocks, never changed
+    for i in range(0, len(blocks), 2):  # between them, `inline code` is never changed either
+        spans = re.split(r"(`[^`\n]+`)", blocks[i])
+        blocks[i] = "".join(span if j % 2 else plain(span) for j, span in enumerate(spans))
+    return "".join(blocks)
+
+
 def teach_text(text: str) -> str | None:
     """The fact in a "remember: ..." / "기억해: ..." message (leading @mentions removed, others kept), or None if it is
     not such a command."""
@@ -2076,6 +2097,7 @@ def reply(client, say, event: dict, context, question: str, thread_ts: str | Non
             text = tool_results(tool_ctx) + ("\n" + MEMORY_DROPPED if tool_ctx.reset else "")
     text = defuse(text)  # never ping a whole channel or group
     text = re.sub(r"(?m)^(\s*```)[A-Za-z0-9_+-]+[ \t]*$", r"\1", text)  # Slack shows a ```text language tag as a line
+    text = unbold_unrenderable(text)  # Slack shows *bold* next to Han or Hangul with its asterisks
     try:
         client.chat_update(channel=posted["channel"], ts=posted["ts"], text=text)
     except Exception as e:  # could not edit the placeholder; post the answer as a new message instead
